@@ -11,7 +11,7 @@ class Step(Base):
     text_content: Mapped[str] = mapped_column(nullable=True)
     image_url: Mapped[str] = mapped_column(nullable=True)
     video_url: Mapped[str] = mapped_column(nullable=True)
-    course_id: Mapped['Course'] = mapped_column(ForeignKey('courses.id'))
+    course_id: Mapped[int] = mapped_column(ForeignKey('courses.id'))
     course: Mapped['Course'] = relationship(back_populates="steps")
     is_active: Mapped[bool] = mapped_column(default=True)
     is_end: Mapped[bool] = mapped_column(default=False)

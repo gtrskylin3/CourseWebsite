@@ -1,17 +1,12 @@
 from fastapi import FastAPI
-
+from app.routers.course import router as course 
+from app.routers.steps import router as steps 
+import uvicorn
 
 app = FastAPI()
+app.include_router(course)
+app.include_router(steps)
 
 
-@app.get("/all_courses")
-async def all_courses():
-    pass
-
-@app.get("/{course_id}")
-async def get_course_info(course_id):
-    pass
-
-@app.get("/{course_id}/{step_course}")
-async def get_course_step(course_id, step_course):
-    pass
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", reload=True)
