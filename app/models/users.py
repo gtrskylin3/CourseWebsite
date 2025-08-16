@@ -9,6 +9,7 @@ class User(Base):
     first_name: Mapped[str] = mapped_column(String(32), unique=False)
     last_name: Mapped[str] = mapped_column(String(32), unique=False)
     username: Mapped[str] = mapped_column(String(32), unique=True)
+    hashed_password: Mapped[str] = mapped_column(String(128))
     progress: Mapped[list['UserCourseProgress']] = relationship(
         "UserCourseProgress", back_populates="user"
     )

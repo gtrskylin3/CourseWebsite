@@ -47,3 +47,26 @@ class StepListResponse(BaseModel):
     status_code: int
     course_id: int
     steps: List[StepListItem]
+
+class UserCreateScheme(BaseModel):
+    first_name: str = Field(max_length=32)
+    last_name:  str = Field(max_length=32)
+    username: str = Field(max_length=32)
+    password: str = Field(max_length=32)
+
+class UserLoginScheme(BaseModel):
+    username: str = Field(max_length=32)
+    password: str = Field(max_length=32)
+
+class UserResponse(BaseModel):
+    id: int
+    first_name: str 
+    last_name:  str 
+    username: str 
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+class TokenInfo(BaseModel):
+    access_token: str
+    token_type: str = "Bearer"
