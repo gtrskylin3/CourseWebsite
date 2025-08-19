@@ -3,7 +3,7 @@ from sqlalchemy import select, update, insert
 from app.schemas import UserCreateScheme, UserResponse
 from app.models import User, Course, UserCourseProgress, Step
 from app.backend.dp_depends import get_db
-from app.utils import hash_pw
+from app.utils.pw_utils import hash_pw
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError

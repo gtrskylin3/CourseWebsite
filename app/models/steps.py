@@ -13,6 +13,8 @@ class Step(Base):
     video_url: Mapped[str] = mapped_column(nullable=True)
     course_id: Mapped[int] = mapped_column(ForeignKey('courses.id'))
     course: Mapped['Course'] = relationship(back_populates="steps")
+    order: Mapped[int] = mapped_column(default=1)  # номер шага внутри курса
+
     is_active: Mapped[bool] = mapped_column(default=True)
     is_end: Mapped[bool] = mapped_column(default=False)
     
