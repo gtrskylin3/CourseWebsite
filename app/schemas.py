@@ -18,6 +18,7 @@ class CourseResponse(BaseModel):
 
 class CreateStep(BaseModel):
     title: str = Field(..., max_length=32)
+    order: int = Field(ge=1)
     text_content: Optional[str] = Field(None)
     image_url: Optional[str] = Field(None)
     video_url: Optional[str] = Field(None)
@@ -39,6 +40,7 @@ class StepListItem(BaseModel):
     step_image: Optional[str] = None
     text_content: Optional[str] = None  
     video_url: Optional[str] = None
+    order: int
     status: str
     
     model_config = ConfigDict(from_attributes=True)
@@ -70,3 +72,9 @@ class UserResponse(BaseModel):
 class TokenInfo(BaseModel):
     access_token: str
     token_type: str = "Bearer"
+
+class UserProgressResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    user_id: int
+    course_id: int
+    current_step_id: int 
