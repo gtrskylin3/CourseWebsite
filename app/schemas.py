@@ -16,6 +16,8 @@ class CourseResponse(BaseModel):
 
 
 
+
+
 class CreateStep(BaseModel):
     title: str = Field(..., max_length=32)
     order: int = Field(ge=1)
@@ -83,3 +85,12 @@ class UserProgressResponse(BaseModel):
 class StepWithProgressResponse(BaseModel):
     step: StepResponse
     is_completed: bool
+
+
+class CourseWithProgressResponse(BaseModel):
+    id: int
+    title: str
+    description: str | None
+    is_completed: bool
+
+    model_config = ConfigDict(from_attributes=True)

@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import select, update, insert
-from app.schemas import CourseResponse, UserCreateScheme, UserResponse
+from app.schemas import CourseResponse, CourseWithProgressResponse, UserCreateScheme, UserResponse
 from app.models import User, Course, UserCourseProgress, Step
 from app.backend.dp_depends import get_db
 from app.utils.pw_utils import hash_pw
@@ -53,11 +53,11 @@ async def user_courses(
     if not progresses:
         raise HTTPException(status_code=404, detail="User progress not found")
     
-    courses = [CourseResponse(
+    courses = [CourseWithProgressResponse(
                 id = progress.course.id,
                 title=progress.course.title,
-                description=progress.course.description
-            )
+                description=progress.course.description,
+                is_completed=progress.is_completed)
             for progress in progresses]
     if not courses:
          raise HTTPException(status_code=404, detail="User progress not found")
