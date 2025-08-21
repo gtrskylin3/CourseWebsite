@@ -67,9 +67,11 @@ async def login_cookie(
     raise HTTPException(status_code=401, detail="Invalid username or password")
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me")
 async def get_active_user(user: User = Depends(get_current_user)):
-    return user
+    if user.is_admin:
+        return "Hello Admin"
+    return UserResponse.model_validate(user)
 
 
 @router.get("/logout")

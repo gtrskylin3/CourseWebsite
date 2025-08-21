@@ -35,6 +35,7 @@ class StepResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class StepListItem(BaseModel):
     title: str
     step_image: Optional[str] = None
@@ -78,3 +79,7 @@ class UserProgressResponse(BaseModel):
     user_id: int
     course_id: int
     current_step_id: int 
+
+class StepWithProgressResponse(BaseModel):
+    step: StepResponse
+    is_completed: bool

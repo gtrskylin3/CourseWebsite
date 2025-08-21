@@ -2,7 +2,7 @@ from app.backend.dp_depends import get_db
 from fastapi import Body, Depends, APIRouter, HTTPException, status
 from sqlalchemy import select, insert, delete, update
 from typing import Optional, Annotated
-from app.schemas import CreateCourse, CourseResponse, StepResponse, UserProgressResponse
+from app.schemas import CreateCourse, CourseResponse, StepResponse, StepWithProgressResponse, UserProgressResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from app.models import Course, User, Step, UserCourseProgress
@@ -31,7 +31,6 @@ async def get_courses(session: sessionDep):
         status_code=status.HTTP_404_NOT_FOUND, detail="There is no active course."
     )
 
-
 @router.get("/{course_id}", response_model=CourseResponse)
 async def get_course_by_id(session: sessionDep, course_id: int):
     course = await session.scalar(
@@ -44,17 +43,6 @@ async def get_course_by_id(session: sessionDep, course_id: int):
     return CourseResponse(
         id=course.id, title=course.title, description=course.description
     )
-
-
-@router.post("/")
-async def create_course(session: sessionDep, course_data: CreateCourse):
-    await session.execute(
-        insert(Course).values(
-            title=course_data.title, description=course_data.description
-        )
-    )
-    await session.commit()
-    return {"status_code": status.HTTP_200_OK, "transaction": "Successful"}
 
 
 @router.post("/start/{course_id}")
@@ -134,24 +122,27 @@ async def back_step_course(
     
     if not user_progress or not user_progress.current_step:
         raise HTTPException(404, "User progress or step not found")
-    back_step_order = user_progress.current_step.order - 1
-    if back_step_order == 0:
-        back_step_order = 1
+    current_step_order = user_progress.current_step.order
+    if current_step_order == 1:
+        return user_progress.current_step
+
     back_step = await session.scalar(
         select(Step)
         .where(Step.course_id == course_id, 
                Step.is_active == True, 
-               Step.order == back_step_order))
+               Step.order < current_step_order)
+               .order_by(Step.order.desc()))
     if not back_step:
         raise HTTPException(
             status_code=404,
-            detail=f"Step with order: {back_step_order}, not found"
+            detail=f"Step back, not found"
         )
+
     user_progress.current_step_id = back_step.id
     await session.commit()
     return back_step
 
-@router.get("/{course_id}/next", response_model=StepResponse)
+@router.get("/{course_id}/next", response_model=StepWithProgressResponse)
 async def next_step_course(
     course_id: int,
     session: sessionDep,
@@ -165,20 +156,31 @@ async def next_step_course(
     
     if not user_progress or not user_progress.current_step:
         raise HTTPException(404, "User progress or step not found")
-    next_step_order = user_progress.current_step.order + 1
+    
+    current_step_order = user_progress.current_step.order
     next_step = await session.scalar(
         select(Step)
         .where(Step.course_id == course_id, 
                Step.is_active == True, 
-               Step.order == next_step_order))
+               Step.order > current_step_order)
+        .order_by(Step.order.asc()))
+    
     if not next_step:
+        if user_progress.is_completed:
+            raise HTTPException(409, "Course is already completed")  
         raise HTTPException(
             status_code=404,
-            detail=f"Step with order: {next_step_order}, not found"
+            detail=f"Next step not found"
         )
     user_progress.current_step_id = next_step.id
+    if next_step.is_end:
+        user_progress.is_completed = True
+
     await session.commit()
-    return next_step
+    return StepWithProgressResponse(
+        step=StepResponse.model_validate(next_step),
+        is_completed=user_progress.is_completed
+    )
 
 
 

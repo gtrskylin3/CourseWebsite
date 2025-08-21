@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey, String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.backend.db import Base
 from app.models import *
@@ -14,4 +14,5 @@ class User(Base):
         "UserCourseProgress", back_populates="user"
     )
     is_active: Mapped[bool] = mapped_column(default=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, server_default="false")
 
