@@ -74,6 +74,7 @@ class UserResponse(BaseModel):
 
 class TokenInfo(BaseModel):
     access_token: str
+    refresh_token: str | None = None
     token_type: str = "Bearer"
 
 class UserProgressResponse(BaseModel):
@@ -94,3 +95,10 @@ class CourseWithProgressResponse(BaseModel):
     is_completed: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserScheme(BaseModel):
+    id: int
+    username: str
+    first_name: str
+    last_name: str
+    is_active: bool

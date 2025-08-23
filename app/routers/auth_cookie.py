@@ -17,7 +17,7 @@ from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from app.utils.pw_utils import check_pw, hash_pw
-from app.utils.current_user import get_current_user
+from app.utils.current_user import get_current_user, create_access_token_by_refresh_token
 from app.config import settings
 from app.utils.jwt_token import token_to_payload, jwt_encode_token
 import jwt
@@ -34,7 +34,7 @@ router = APIRouter(prefix="/cookie_auth", tags=["Auth"])
 
 sessionDep = Annotated[AsyncSession, Depends(get_db)]
 
-
+from app.utils.jwt_token import create_access_token, create_refresh_token
 
 @router.post("/login", status_code=201)
 async def login_cookie(
@@ -46,24 +46,13 @@ async def login_cookie(
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     if check_pw(user_data.password, user.hashed_password):
-        access_token = jwt_encode_token(
-            payload={
-                "sub": str(user.id),
-                "username": user.username,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "is_active": user.is_active,
-            }
-        )
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,  # запрещает JS доступ
-            secure=True,  # только HTTPS
-            samesite="lax",  # или "strict", если у тебя нет кросс-доменных запросов,
-            max_age=60*60*60*60
-        )
-        return TokenInfo(access_token=access_token, token_type="Cookie")
+       access = create_access_token(response=response, user=user)
+       refresh = create_refresh_token(response=response, user=user)
+       return TokenInfo(
+           access_token=access,
+           refresh_token=refresh,
+           token_type="Cookie"
+       )
     raise HTTPException(status_code=401, detail="Invalid username or password")
 
 
@@ -72,6 +61,16 @@ async def get_active_user(user: User = Depends(get_current_user)):
     if user.is_admin:
         return "Hello Admin"
     return UserResponse.model_validate(user)
+
+
+@router.post("/refresh")
+async def create_new_access_by_refresh(
+    access_token: str = Depends(create_access_token_by_refresh_token)
+):
+    return TokenInfo(
+        access_token=access_token,
+        token_type="Cookie"
+    )
 
 
 @router.get("/logout")
